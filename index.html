@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<!--
+MIT License
+
+Copyright (c) 2024 CodingJEP
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<!--
+New-Year-Countdown - v3.1
+-->
+<html>
+    <head>
+        <title>New-Year-Countdown + Firework</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+        <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAAAAAAAAQCEeRdzAAAAU0lEQVR4nGNgKC/5TxGGEAzkYRQD7t74z7BtE0ISGx+GYeIkGwDiwzDZBlDkhSFiAAyTbACuqCLJAHyKyTYA2VVEJSRc/sfmNQwDqBYGJGcmCjAAGzm2/RNtgBEAAAAASUVORK5CYII=">
+        <style>
+            body {
+                width: 100vw;
+                height: 100vh;
+                background-color: #000f;
+                text-align: center;
+                overflow: hidden;
+                margin: 0px;
+                padding: 0px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                user-select: none;
+                -webkit-user-select: none; /* safari needs Extrawürste */
+                font-family: Courier, monospace;
+            }
+
+            #countdowntext {
+                color: #ffff;
+                font-size: 5.4vw;
+                animation: countdowntext-fade-in ease-in-out 1s;
+            }
+            @keyframes countdowntext-fade-in {
+                from,10% {
+                    opacity: 0;
+                    scale: 0.92;
+                }
+            } 
+
+            #kbdtext {
+                opacity: 0.7;
+                text-align: left;
+                position: absolute;
+                color: #fff;
+                z-index: 10;
+                bottom: 0;
+                left: 0;
+                border-top-right-radius: min(3vh, 3vw);
+                padding: min(1vh, 1vw);
+                font-size: min(30px, min(1.8vw, 14vh));
+            }
+
+            #firework-canvas {
+                position: absolute;
+                z-index: -10;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+            }
+
+
+            .hidden {
+                display: none;
+            }
+
+
+            #menu {
+                position: absolute;
+                z-index: 20;
+                --menu-size: min(80vw, 80vh);
+                top: calc(50vh - calc(0.5 * var(--menu-size)));
+                left: calc(50vw - calc(0.5 * var(--menu-size)));
+                background-color: #222;
+                border-width: min(1vw, 1vh);
+                border-style: solid;
+                border-color: #fff;
+                border-radius: min(5vw, 5vh);
+                width: var(--menu-size);
+                height: var(--menu-size);
+                color: #fff;
+            }
+
+            #menu-title {
+                --menu-title-height: calc(var(--menu-size) * 0.15);
+                height: var(--menu-title-height);
+                line-height: var(--menu-title-height);
+                font-size: calc(0.5 * var(--menu-title-height));
+                font-weight: bold;
+            }
+
+            #menu-main {
+                --menu-main-border-top-bottom-width: min(0.8vw, 0.8vh);
+                height: calc(calc(var(--menu-size) * 0.75) - calc(2 * var(--menu-main-border-top-bottom-width)));
+                justify-content: top;
+                overflow-x: hidden;
+                overflow-y: scroll;
+                font-size: calc(0.05 * var(--menu-size));
+                border-style: solid none solid none;
+                border-color: #fff7;
+                border-width: var(--menu-main-border-top-bottom-width);
+            }
+
+
+            #menu-main>div {
+                --menu-main-entry-border-width: min(1vw, 1vh);
+                width: calc(90% - calc(2* var(--menu-main-entry-border-width)));
+                margin-left: 5%;
+                margin-bottom: min(2vw, 2vh);
+                margin-top: min(2vw, 2vh);
+                background-color: #444;
+                border-style: solid;
+                border-color: white;
+                border-width: var(--menu-main-entry-border-width);
+                border-radius: min(3vw, 3vh);
+                overflow-wrap: break-word;
+                white-space: normal;
+            }
+
+            #menu-main>div button {
+                transition-duration: 300ms;
+                font-size: calc(var(--menu-size) * 0.05);
+                background-color: #171717;
+                color: inherit;
+                border-style: solid;
+                border-color: white;
+                border-width: min(0.5vw, 0.5vh);
+                border-radius: min(2vw, 2vh);
+                padding: min(0.5vw, 0.5vh);
+                margin: min(1vw, 1vh);
+            }
+
+            
+            #menu-close-corner {
+                transition-duration: 150ms;
+                position: absolute;
+                --menu-close-radii: min(10vw, 10vh);
+                --menu-close-border-width: calc(0.07 * var(--menu-close-radii));
+                top: calc(-0.5 * calc(var(--menu-close-radii) + var(--menu-close-border-width)));
+                right: calc(-0.5 * calc(var(--menu-close-radii) + var(--menu-close-border-width)));
+                width: var(--menu-close-radii);
+                height: var(--menu-close-radii);
+                background-color: #b50505;
+                border-radius: 50%;
+                border-color: #fff;
+                border-style: solid;
+                border-width: var(--menu-close-border-width);
+            }
+            #menu-close-corner>svg {
+                transition-duration: inherit;
+                position: absolute;
+                height: 100%;
+                width: 100%;
+                left: 0;
+                top: 0;
+                stroke-width: 6;
+                stroke: #fff;
+                transform-origin: center;
+                scale: 0.6;
+            }
+            
+
+            #menu-footer {
+                user-select: text;
+                -webkit-user-select: text; /* safari still needs Extrawürste */
+                --menu-title-height: calc(var(--menu-size) * 0.09);
+                height: var(--menu-title-height);
+                line-height: var(--menu-title-height);
+                font-size: calc(0.3 * var(--menu-title-height));
+            }
+
+
+            @media ((max-aspect-ratio: 0.65) or (max-width: 600px)) { /* mobile portrait */
+                #kbdtext {
+                    font-size: 3.2vw;
+                }
+            }
+
+            @media (pointer: fine) { /* mouse supported */
+                #kbdtext {
+                    opacity: 0.13;
+                    transition-duration: 300ms;
+                }
+                #kbdtext:hover {
+                    opacity: 1;
+                    border-color: #fff;
+                    border-width: min(1vh, 1vw);
+                    border-right-style: solid;
+                    border-top-style: solid;
+                    background-color: #222;
+                    transition-duration: 200ms;
+                }
+
+                #menu-close-corner:hover>svg {
+                    stroke-width: 8;
+                    scale: 0.7;
+                }
+
+                #menu-main>div button:hover {
+                    transition-duration: 400ms;
+                    background-color: #000;
+                    color: #00ffcc;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div id="countdowntext"><noscript>JavaScript required!</noscript></div>
+        <canvas id="firework-canvas"></canvas>
+        <div id="menu" class="hidden">
+            <div id="menu-close-corner" class="menu-trigger-close">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </div>
+            <div id="menu-title">
+                New-Year-Countdown
+            </div>
+            <div id="menu-main">
+                <div>
+                    <div>Fake New Year: <span class="menu-display-manual-new-year">idk</span></div>
+                    <button class="menu-trigger-t-manual-new-year">Toggle</button>
+                </div>
+                <div>
+                    <div>Firework Density: <span class="menu-display-firework-density">idk</span></div>
+                    <span class="menu-gen-firework-density"></span>
+                </div>
+                <div>
+                    <div>Firework Gravity: <span class="menu-display-firework-gravity">idk</span></div>
+                    <span class="menu-gen-firework-gravity"></span>
+                </div>
+                <div>
+                    <div>Firework Trails: <span class="menu-display-trails">idk</span></div>
+                    <button class="menu-trigger-t-trails">Toggle</button>
+                </div>
+                <div>
+                    <div>New Year Big Bang: <span class="menu-display-big-bang-color">idk</span></div>
+                    <span class="menu-gen-big-bang-color"></span>
+                </div>
+            </div>
+            <div id="menu-footer">
+                New-Year-Countdown + Firework | v3.0 | © 2024 CodingJEP
+            </div>
+        </div>
+        <div id="kbdtext">Esc / RightClick / DoubleTap : menu</div>
+        <script> // store
+            const BigBangColors = {
+                GREEN:{name:"Green",hue:120},
+                PURPLE:{name:"Purple",hue:280},
+                RED:{name:"Red",hue:-15},
+                YELLOW:{name:"Yellow",hue:35},
+            };
+            
+            const FireworkBaseDensities = {
+                LOW:{name:"Lite",count:40},
+                MEDIUM:{name:"Normal",count:100},
+                HIGH:{name:"High",count:180},
+                EXTREME:{name:"Extreme",count:400},
+            };
+
+            const Gravities = {
+                ZERO:{name:"Space",supply:()=>(0)},
+                SLIGHT:{name:"Normal",supply:()=>(Math.random() * 0.02 + 0.01)},
+                MODERATE:{name:"Moderate",supply:()=>(Math.random() * 0.04 + 0.01)},
+                HIGH:{name:"High",supply:()=>(Math.random() * 0.06 + 0.01)},
+            };
+
+            const TARGET_MSPT = 15;
+            const countdownText = document.getElementById("countdowntext");
+            const fireworkCanvas = document.getElementById("firework-canvas");
+            /** @type {CanvasRenderingContext2D | null} */
+            const fireworkCtx = fireworkCanvas.getContext("2d");
+        
+            let fireworkBaseDensity = FireworkBaseDensities.MEDIUM;
+            let bigBangColor = BigBangColors.GREEN;
+            let gravity = Gravities.SLIGHT;
+            let manualNewYear = false;
+            let trails = true;
+        </script>
+        <script> // main
+            async function main() {
+                let tick = 0;
+                let nextFireworkTick = 0;
+                let screenFlashOpacity = 0;
+                let lastFireworkActive = false;
+                let fireworkParticles = [];
+                let flashParticles = [];
+                
+                while (true) {
+                    const tickStart = performance.now();
+                    ++tick;
+                    let text = "";
+                    const now = new Date();
+                    const newYewar = (now.getMonth() == 0) && (now.getDate() == 1);
+
+                    const fireworkActive = newYewar || manualNewYear;
+                    const justStartedFirework = fireworkActive && !lastFireworkActive;
+                    lastFireworkActive = fireworkActive;
+
+                    const aspectRatio = fireworkCanvas.width / fireworkCanvas.height;
+                    const fitScale = Math.max(fireworkCanvas.width / 1000, fireworkCanvas.height / 1000);
+                    const maxRenderX = aspectRatio >= 1 ? 1000 : 1000 * aspectRatio;
+                    const maxRenderY = aspectRatio >= 1 ? 1000 / aspectRatio : 1000;
+
+
+                    if (justStartedFirework) {
+                        screenFlashOpacity = 1;
+                        nextFireworkTick = tick + 80;
+
+                        burstX = maxRenderX / 2;
+                        burstY = maxRenderY / 2;
+                        for (let i = 1000; i > 0; i--) {
+                            fireworkParticles.push(new FireworkParticle(
+                                burstX,
+                                burstY,
+                                Math.random() * 7 + 1,
+                                Math.random() * 8 + 0.3,
+                                Math.random() * Math.PI * 2,
+                                Gravities.MODERATE.supply(),
+                                Math.random() * 0.01 + 0.01,
+                                1,
+                                Math.random() * 35 + 40,
+                                Math.random() * 30 + bigBangColor.hue
+                            ));
+                        }
+                        flashParticles.push(new FlashParticle(
+                            burstX,
+                            burstY,
+                            170,
+                            0.04,
+                            1
+                        ));
+                    }
+
+                    if (fireworkActive) {
+                        if (nextFireworkTick <= tick) {
+                            nextFireworkTick = tick + Math.random() * 15 + 4;
+
+                            const burstX = Math.random() * maxRenderX;
+                            const burstY = Math.random() * maxRenderY;
+                            const baseHue = Math.random() * 360;
+                            const power = Math.random();
+                            for (let i = (power + Math.random() * 0.2) * 160 + fireworkBaseDensity.count; i > 0; i--) {
+                                const hue = baseHue + (Math.random() -0.5) * 80;
+                                const speed = (power * 1.5 + 2) * Math.random() + 0.3;
+                                fireworkParticles.push(new FireworkParticle(
+                                    burstX,
+                                    burstY,
+                                    Math.random() * 5 + 1,
+                                    speed,
+                                    Math.random() * Math.PI * 2,
+                                    gravity.supply(),
+                                    Math.random() * 0.01 + (1-power) * 0.008 + 0.010,
+                                    1,
+                                    Math.random() * 30 + 60,
+                                    hue
+                                ));
+                            }
+                            flashParticles.push(new FlashParticle(
+                                burstX,
+                                burstY,
+                                Math.random() * 30 + power * 30 + 30,
+                                Math.random() * 0.01 + (1-power) * 0.02 + 0.02,
+                                Math.random() * 0.2 + power * 0.6 + 0.2
+                            ));
+                        }
+                    } else {
+                        const isSchaltjahr =  now.getFullYear() % 4 == 0;
+                        const next = new Date(now.getFullYear() + 1, 0);    
+                        const diff = next.getTime() - now.getTime();
+                        const days = ~~(diff/1000/60/60/24%(isSchaltjahr ? 366 : 365));
+                        const hours = ~~(diff/1000/60/60%24);
+                        const minutes = ~~(diff/1000/60%60);
+                        const seconds = Math.ceil(diff/1000%60);
+
+                        const zeropaddstr = (num, minLen) => {
+                            const isNeg = num < 0;
+                            if (isNeg) num = -num;
+                            let res = "" + num;
+                            for (let i = minLen - res.length; i > 0; i--) res = "0" + res;
+                            return (isNeg ? "-" : "") + res;
+                        }
+
+                        text = zeropaddstr(days, 3) + "d " + zeropaddstr(hours, 2) + "h " + zeropaddstr(minutes, 2) + "m " + zeropaddstr(seconds, 2) + "s";
+                    }
+
+                    for (let i = fireworkParticles.length -1; i >= 0; i--) {
+                        const p = fireworkParticles[i];
+                        p.tickParticle();
+                        if (p.opacity <= 0) fireworkParticles.splice(i, 1);
+                    }
+                    for (let i = flashParticles.length -1; i >= 0; i--) {
+                        const p = flashParticles[i];
+                        p.tickParticle();
+                        if (p.opacity <= 0) flashParticles.splice(i, 1);
+                    }
+
+                    countdownText.innerText = text;
+
+                    if (trails) {
+                        fireworkCtx.fillStyle = "#0000001e";
+                        fireworkCtx.fillRect(0, 0, fireworkCanvas.width, fireworkCanvas.height);
+                    } else fireworkCtx.clearRect(0, 0, fireworkCanvas.width, fireworkCanvas.height);
+
+                    if (screenFlashOpacity >= 0.01) {
+                        fireworkCtx.fillStyle = "rgba(255,255,255,"+screenFlashOpacity+")";
+                        fireworkCtx.fillRect(0, 0, fireworkCanvas.width, fireworkCanvas.height);
+                        screenFlashOpacity = screenFlashOpacity * (trails ? 0.6 : 0.85);
+                    }
+
+                    for (const p of flashParticles) p.drawParticle(fitScale);
+                    for (const p of fireworkParticles) p.drawParticle(fitScale);
+
+            
+                    const tickEnd = performance.now();
+                    const tickMsTaken = tickEnd - tickStart;
+                    const tickTimePadd = new Promise(resolve => setTimeout(resolve, Math.max(0, TARGET_MSPT - tickMsTaken)));
+                    if (tickMsTaken > TARGET_MSPT) console.warn("OVERLOADED: took "+tickMsTaken+", max "+TARGET_MSPT);
+                    await tickTimePadd;
+                }
+            }
+        </script>
+        <script> // particles
+            class FireworkParticle {
+                constructor(x, y, radius, launchSpeed, launchAngle, gravity, opacityDecay, opacity, saturation, hue) {
+                    this.x = x;
+                    this.y = y;
+                    this.radius = radius;
+                    this.velocity = {
+                        x: Math.cos(launchAngle) * launchSpeed,
+                        y: Math.sin(launchAngle) * launchSpeed
+                    };
+                    this.gravity = gravity;
+                    this.opacityDecay = opacityDecay;
+                    this.opacity = opacity;
+                    this.color = "hsl(" + hue + "deg, 100%, " + saturation + "%)";
+                }
+
+                tickParticle() {
+                    this.velocity.y += this.gravity;
+                    this.x += this.velocity.x;
+                    this.y += this.velocity.y;
+                    this.opacity -= this.opacityDecay;
+                }
+
+                drawParticle(scale) {
+                    fireworkCtx.beginPath();
+                    fireworkCtx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2);
+                    fireworkCtx.fillStyle = this.color;
+                    fireworkCtx.globalAlpha = this.opacity;
+                    fireworkCtx.fill();
+                    fireworkCtx.closePath();
+                    fireworkCtx.globalAlpha = 1;
+                }
+            }
+
+            class FlashParticle {
+                constructor(x, y, size, opacityDecay, opacity) {
+                    this.x = x;
+                    this.y = y;
+                    this.size = size;
+                    this.opacityDecay = opacityDecay;
+                    this.opacity = opacity;
+                }
+
+                static image = (()=>{
+                    const image = new Image();
+                    image.src = (((d=>((d.getDate()==1)&&(d.getMonth()==3)))(new Date()))
+                        ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAADWklEQVR4nB2T7U+aZxSH+VuWfW+zLc5s2ZqszZJua13bGddErdYooiCsgkVQERBRrG5WsMrLA/L68PDw8A4tKoLMdWmWrh/2/1y764fz6c65ct2/c45OzV9RkHuoSh8510FNVzhXsrRiAcoHa5SP9qjEwqgnRUqFDp3TD1xe/MfZm/cU8xfoStpf4qFHUT6nkU7RejFH0nQb//BN3I9uEhj/iszze0j2UVLBMJpoalb/Jp8+R06doqsW36EVLtFOSmhrT4g8/Rz3L59hGRpk5vsbmO8PYPt5EMeDAbbnR8jHE" +
+                          "8iJFsVsh9f1f4SBeoWm/klZyhObvYvh1idM3PoU/d0bGO59iXPsB1ZG7zN95wvMD74mEw6hpFq0a+84e/0BXbHQp1jookkZkrYR7A+/xf74DtvGMaR1O0pgk0LAh3viVwEdILq3gZysUVV7vGkJA025pKh00JI5ChtGYvZZpGUzJ64lsu41ioFdSrsvObZZWRj6jn2vlXRcIy1VKXwM8SOgpHRRYnmiKyYidiMR2zxxp5nEyjNyXi853xYprwfn6BCH2y4qWhspXOA4JIsv5LvXBs3SBfn9HV7Z9GxOPiJomSRqn2dbP0bo+W9k/H78+nGi/g2adZGZ1kOKaOhUoaEJwMXZexpZjdCiCc/4MLvzT8lveYg6" +
+                          "7SQ8LvI7L0i63MguL3W1SUNA8pkWOjl7iiqqLJZEjckkXE72TdMcmGdEBk5kzwaKz4fi9yF7fag7u7Rqp9SrParlLrpMqk4u2byuUiSH4l3hwDjO7/oREaaFrGed7Iab4/VVwpseClKaRq0rmgWgdIkuGa+QildRsm1O62+phSVCC1McGB5zZJkl7rATcVpxmQ1YF2aIHB7TrPWol/tUimIKiahKSlJpN/v0O/9y0boi7Fhib2qEw5lJkk4bMZedVdMsSxYD8XCEhtCvlbrCuiwAEYVkVKFREUG239Ju9Dn5I0TIPEXQ+ISYwyLGu4xzbgarcZpYKEhZqYnMmpxE8+hSUpFUrEA2UaRV7SCLa4wFJQ6fGfC" +
+                          "P/Yh/Ypij5UVWjXMsmvQEAzusLVhxzhsJ2FfRpYV+TpxqWtxCKpIl9ipJ8jB+vUxboz8JyEOiS4u8dDhYt1oJejfxLm9xe/AbUQP8D66ptNvrnmf+AAAAAElFTkSuQmCC"
+                        : "data:image/svg+xml;base64," + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="f" cx="50%" cy="50%" r="50%" fx="50%" fy="50%"><stop offset="0%" style="stop-color:white;stop-opacity:1"/><stop offset="100%" style="stop-color:white;stop-opacity:0"/></radialGradient></defs><circle cx="100" cy="100" r="80" fill="url(#f)"/></svg>')
+                    );
+                    return image;
+                })(); 
+
+                tickParticle() {
+                    this.opacity -= this.opacityDecay;
+                }
+
+                drawParticle(scale) {
+                    fireworkCtx.globalAlpha = this.opacity;
+                    const hSize = this.size / 2;
+                    const scaledSize = this.size * scale;
+                    fireworkCtx.drawImage(FlashParticle.image, (this.x - hSize) * scale, (this.y - hSize) * scale, scaledSize, scaledSize);
+                    fireworkCtx.globalAlpha = 1;
+                }
+            }
+        </script>
+        <script> // menu
+            const menuelement = document.getElementById("menu")
+
+            function openDomMenu() {
+                pushMenuDomData()
+                menuelement.classList.remove("hidden");
+            }
+
+            function closeDomMenu() {
+                menuelement.classList.add("hidden");
+            }
+
+            function isDomMenuOpen() {
+                return !menuelement.classList.contains("hidden");
+            }
+
+
+            document.addEventListener("contextmenu", e => {
+                if (!isDomMenuOpen()) openDomMenu();
+                e.preventDefault();
+            });
+
+            document.addEventListener("keydown", e => {
+                if (event.key === "Escape") {
+                    (isDomMenuOpen() ? closeDomMenu : openDomMenu)();
+                }
+            });
+
+            let menuLastTapOnDocument = -300;
+            document.addEventListener("touchend", e => {
+                if (e.timeStamp - menuLastTapOnDocument < 300) {
+                    if (!isDomMenuOpen()) openDomMenu();
+                }
+                menuLastTapOnDocument = e.timeStamp;
+            });
+
+
+            function pushMenuDomData() {
+                for (let it of document.getElementsByClassName("menu-display-trails")) it.innerText = trails ? "Yes" : "No";
+                for (let it of document.getElementsByClassName("menu-display-manual-new-year")) it.innerText = manualNewYear ? "Yes" : "No";
+                for (let it of document.getElementsByClassName("menu-display-big-bang-color")) it.innerText = bigBangColor.name;
+                for (let it of document.getElementsByClassName("menu-display-firework-density")) it.innerText = fireworkBaseDensity.name;
+                for (let it of document.getElementsByClassName("menu-display-firework-gravity")) it.innerText = gravity.name;
+            }
+
+
+            for (let it of document.getElementsByClassName("menu-trigger-close")) it.onclick = e => closeDomMenu();
+
+            for (let it of document.getElementsByClassName("menu-trigger-t-trails")) it.onclick = e => {
+                trails = !trails;
+                pushMenuDomData();
+            };
+
+            for (let it of document.getElementsByClassName("menu-trigger-t-manual-new-year")) it.onclick = e => {
+                manualNewYear = !manualNewYear;
+                if (manualNewYear) {
+                    closeDomMenu();
+                    instantHideMouse();
+                } else pushMenuDomData();
+            };
+
+
+
+            for (let it of document.getElementsByClassName("menu-gen-big-bang-color")) {
+                for (let objvalue of Object.values(BigBangColors)) {
+                    const bttn = document.createElement("button");
+                    it.appendChild(bttn);
+                    bttn.innerText = objvalue.name;
+                    const finalObjvalue = objvalue;
+                    bttn.onclick = e => {
+                        if (bigBangColor != finalObjvalue) {
+                            bigBangColor = finalObjvalue;
+                            pushMenuDomData();
+                        }
+                    };
+                }
+            }
+
+            for (let it of document.getElementsByClassName("menu-gen-firework-density")) {
+                for (let objvalue of Object.values(FireworkBaseDensities)) {
+                    const bttn = document.createElement("button");
+                    it.appendChild(bttn);
+                    bttn.innerText = objvalue.name;
+                    const finalObjvalue = objvalue;
+                    bttn.onclick = e => {
+                        if (fireworkBaseDensity != finalObjvalue) {
+                            fireworkBaseDensity = finalObjvalue;
+                            pushMenuDomData();
+                        }
+                    };
+                }
+            }
+
+            for (let it of document.getElementsByClassName("menu-gen-firework-gravity")) {
+                for (let objvalue of Object.values(Gravities)) {
+                    const bttn = document.createElement("button");
+                    it.appendChild(bttn);
+                    bttn.innerText = objvalue.name;
+                    const finalObjvalue = objvalue;
+                    bttn.onclick = e => {
+                        if (gravity != finalObjvalue) {
+                            gravity = finalObjvalue;
+                            pushMenuDomData();
+                        }
+                    };
+                }
+            }
+        </script>
+        <script> // essen
+            function updateFireworkCanvasDimensions() {
+                fireworkCanvas.width = window.innerWidth;
+                fireworkCanvas.height = window.innerHeight;
+            }
+            updateFireworkCanvasDimensions()
+            window.addEventListener("resize", updateFireworkCanvasDimensions);
+
+
+            let idleMouseHideTimeout = null;
+
+            function instantHideMouse() {
+                document.body.style.cursor = "none";
+                if (idleMouseHideTimeout != null) clearTimeout(idleMouseHideTimeout);
+                idleMouseHideTimeout = null;
+            }
+            function resetIdleMouseHide() {
+                document.body.style.cursor = "auto";
+                if (idleMouseHideTimeout != null) clearTimeout(idleMouseHideTimeout);
+                idleMouseHideTimeout = setTimeout(() => document.body.style.cursor = "none", 1200);
+            }
+
+            document.addEventListener("mousemove", resetIdleMouseHide);
+            document.addEventListener("mousedown", resetIdleMouseHide);
+        </script>
+        <script> // launch
+            main();
+        </script>
+    </body>
+</html>
