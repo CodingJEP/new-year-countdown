@@ -2,7 +2,7 @@
 <!--
 MIT License
 
-Copyright (c) 2024 CodingJEP
+Copyright (c) 2025 CodingJEP
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 -->
 <!--
-New-Year-Countdown - v3.2
+New-Year-Countdown - v4.0
+Made from 98% legacy spaghetti.
 -->
 <html>
     <head>
@@ -45,7 +46,7 @@ New-Year-Countdown - v3.2
                 justify-content: center;
                 align-items: center;
                 user-select: none;
-                -webkit-user-select: none; /* safari needs Extrawürste */
+                -webkit-user-select: none;
                 font-family: Courier, monospace;
             }
 
@@ -81,6 +82,7 @@ New-Year-Countdown - v3.2
                 left: 0;
                 width: 100vw;
                 height: 100vh;
+                image-rendering: crisp-edges;
             }
 
 
@@ -186,7 +188,7 @@ New-Year-Countdown - v3.2
 
             #menu-footer {
                 user-select: text;
-                -webkit-user-select: text; /* safari still needs Extrawürste */
+                -webkit-user-select: text;
                 --menu-title-height: calc(var(--menu-size) * 0.09);
                 height: var(--menu-title-height);
                 line-height: var(--menu-title-height);
@@ -261,9 +263,13 @@ New-Year-Countdown - v3.2
                     <div>New Year Big Bang: <span class="menu-display-big-bang-color">idk</span></div>
                     <span class="menu-gen-big-bang-color"></span>
                 </div>
+                <div>
+                    <div>Render Resolution: <span class="menu-display-render-resolution">idk</span></div>
+                    <span class="menu-gen-render-resolution"></span>
+                </div>
             </div>
             <div id="menu-footer">
-                New-Year-Countdown + Firework | v3.2 | © 2024 CodingJEP
+                New-Year-Countdown + Firework | v4.0 | © 2025 CodingJEP
             </div>
         </div>
         <div id="kbdtext">Esc / RightClick / DoubleTap : menu</div>
@@ -289,12 +295,23 @@ New-Year-Countdown - v3.2
                 HIGH:{name:"High",supply:()=>(Math.random() * 0.06 + 0.01)},
             };
 
+            const RenderResolutions = {
+                FULL:{name:"1x",factor:1},
+                O8:{name:".8x",factor:0.8},
+                O5:{name:".5x",factor:0.5},
+                O2:{name:".2x",factor:0.2},
+                O1:{name:".1x",factor:0.1},
+                OO5:{name:".05x",factor:0.05},
+                OO1:{name:".01x",factor:0.01},
+            };
+
             const TARGET_MSPT = 15;
             const countdownText = document.getElementById("countdowntext");
             const fireworkCanvas = document.getElementById("firework-canvas");
             /** @type {CanvasRenderingContext2D | null} */
             const fireworkCtx = fireworkCanvas.getContext("2d");
-        
+
+            let renderRes = RenderResolutions.FULL;
             let fireworkBaseDensity = FireworkBaseDensities.MEDIUM;
             let bigBangColor = BigBangColors.GREEN;
             let gravity = Gravities.SLIGHT;
@@ -389,7 +406,7 @@ New-Year-Countdown - v3.2
                             ));
                         }
                     } else {
-                        const isSchaltjahr =  now.getFullYear() % 4 == 0;
+                        const isSchaltjahr = isGregorianLeapYear(now.getFullYear());
                         const next = new Date(now.getFullYear() + 1, 0);    
                         const diff = next.getTime() - now.getTime();
                         const days = ~~(diff/1000/60/60/24%(isSchaltjahr ? 366 : 365));
@@ -489,13 +506,16 @@ New-Year-Countdown - v3.2
 
                 static image = (()=>{
                     const image = new Image();
-                    image.src = (((d=>((d.getDate()==1)&&(d.getMonth()==3)))(new Date()))
-                        ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAADWklEQVR4nB2T7U+aZxSH+VuWfW+zLc5s2ZqszZJua13bGddErdYooiCsgkVQERBRrG5WsMrLA/L68PDw8A4tKoLMdWmWrh/2/1y764fz6c65ct2/c45OzV9RkHuoSh8510FNVzhXsrRiAcoHa5SP9qjEwqgnRUqFDp3TD1xe/MfZm/cU8xfoStpf4qFHUT6nkU7RejFH0nQb//BN3I9uEhj/iszze0j2UVLBMJpoalb/Jp8+R06doqsW36EVLtFOSmhrT4g8/Rz3L59hGRpk5vsbmO8PYPt5EMeDAbbnR8jHE" +
-                          "8iJFsVsh9f1f4SBeoWm/klZyhObvYvh1idM3PoU/d0bGO59iXPsB1ZG7zN95wvMD74mEw6hpFq0a+84e/0BXbHQp1jookkZkrYR7A+/xf74DtvGMaR1O0pgk0LAh3viVwEdILq3gZysUVV7vGkJA025pKh00JI5ChtGYvZZpGUzJ64lsu41ioFdSrsvObZZWRj6jn2vlXRcIy1VKXwM8SOgpHRRYnmiKyYidiMR2zxxp5nEyjNyXi853xYprwfn6BCH2y4qWhspXOA4JIsv5LvXBs3SBfn9HV7Z9GxOPiJomSRqn2dbP0bo+W9k/H78+nGi/g2adZGZ1kOKaOhUoaEJwMXZexpZjdCiCc/4MLvzT8lveYg6" +
-                          "7SQ8LvI7L0i63MguL3W1SUNA8pkWOjl7iiqqLJZEjckkXE72TdMcmGdEBk5kzwaKz4fi9yF7fag7u7Rqp9SrParlLrpMqk4u2byuUiSH4l3hwDjO7/oREaaFrGed7Iab4/VVwpseClKaRq0rmgWgdIkuGa+QildRsm1O62+phSVCC1McGB5zZJkl7rATcVpxmQ1YF2aIHB7TrPWol/tUimIKiahKSlJpN/v0O/9y0boi7Fhib2qEw5lJkk4bMZedVdMsSxYD8XCEhtCvlbrCuiwAEYVkVKFREUG239Ju9Dn5I0TIPEXQ+ISYwyLGu4xzbgarcZpYKEhZqYnMmpxE8+hSUpFUrEA2UaRV7SCLa4wFJQ6fGfC" +
-                          "P/Yh/Ypij5UVWjXMsmvQEAzusLVhxzhsJ2FfRpYV+TpxqWtxCKpIl9ipJ8jB+vUxboz8JyEOiS4u8dDhYt1oJejfxLm9xe/AbUQP8D66ptNvrnmf+AAAAAElFTkSuQmCC"
-                        : "data:image/svg+xml;base64," + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="f" cx="50%" cy="50%" r="50%" fx="50%" fy="50%"><stop offset="0%" style="stop-color:white;stop-opacity:1"/><stop offset="100%" style="stop-color:white;stop-opacity:0"/></radialGradient></defs><circle cx="100" cy="100" r="80" fill="url(#f)"/></svg>')
-                    );
+                    image.src = "data:image/svg+xml;base64," + btoa(
+`<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <radialGradient id="f" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+            <stop offset="0%" style="stop-color:white;stop-opacity:1"/>
+            <stop offset="100%" style="stop-color:white;stop-opacity:0"/>
+        </radialGradient>
+    </defs>
+    <circle cx="100" cy="100" r="80" fill="url(#f)"/>
+</svg>`);
                     return image;
                 })(); 
 
@@ -555,6 +575,7 @@ New-Year-Countdown - v3.2
                 for (let it of document.getElementsByClassName("menu-display-big-bang-color")) it.innerText = bigBangColor.name;
                 for (let it of document.getElementsByClassName("menu-display-firework-density")) it.innerText = fireworkBaseDensity.name;
                 for (let it of document.getElementsByClassName("menu-display-firework-gravity")) it.innerText = gravity.name;
+                for (let it of document.getElementsByClassName("menu-display-render-resolution")) it.innerText = renderRes.name;
             }
 
 
@@ -619,11 +640,27 @@ New-Year-Countdown - v3.2
                     };
                 }
             }
+
+            for (let it of document.getElementsByClassName("menu-gen-render-resolution")) {
+                for (let objvalue of Object.values(RenderResolutions)) {
+                    const bttn = document.createElement("button");
+                    it.appendChild(bttn);
+                    bttn.innerText = objvalue.name;
+                    const finalObjvalue = objvalue;
+                    bttn.onclick = e => {
+                        if (renderRes != finalObjvalue) {
+                            renderRes = finalObjvalue;
+                            updateFireworkCanvasDimensions();
+                            pushMenuDomData();
+                        }
+                    };
+                }
+            }
         </script>
         <script> // essen
             function updateFireworkCanvasDimensions() {
-                fireworkCanvas.width = window.innerWidth;
-                fireworkCanvas.height = window.innerHeight;
+                fireworkCanvas.width = Math.round(innerWidth * renderRes.factor);
+                fireworkCanvas.height = Math.round(innerHeight * renderRes.factor);
             }
             updateFireworkCanvasDimensions()
             window.addEventListener("resize", updateFireworkCanvasDimensions);
@@ -644,6 +681,11 @@ New-Year-Countdown - v3.2
 
             document.addEventListener("mousemove", resetIdleMouseHide);
             document.addEventListener("mousedown", resetIdleMouseHide);
+        </script>
+        <script> // even more spaghetti that should be somewhere else
+            function isGregorianLeapYear(y) {
+                return y % 4 === 0 && (!(y % 100 === 0) || y % 400 === 0);
+            }
         </script>
         <script> // launch
             main();
