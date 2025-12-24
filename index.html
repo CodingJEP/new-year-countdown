@@ -23,8 +23,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 -->
 <!--
-New-Year-Countdown - v4.0
-Made from 98% legacy spaghetti.
+New-Year-Countdown - v4.1
+Made from at least 98% legacy spaghetti.
 -->
 <html>
     <head>
@@ -267,13 +267,18 @@ Made from 98% legacy spaghetti.
                     <div>Render Resolution: <span class="menu-display-render-resolution">idk</span></div>
                     <span class="menu-gen-render-resolution"></span>
                 </div>
+                <div>
+                    <div>Fullscreen</div>
+                    <button class="menu-trigger-fullscreen-request">Request</button>
+                    <button class="menu-trigger-fullscreen-exit">Exit</button>
+                </div>
             </div>
             <div id="menu-footer">
-                New-Year-Countdown + Firework | v4.0 | © 2025 CodingJEP
+                New-Year-Countdown + Firework | v4.1 | © 2025 CodingJEP
             </div>
         </div>
         <div id="kbdtext">Esc / RightClick / DoubleTap : menu</div>
-        <script> // store
+        <script>
             const BigBangColors = {
                 GREEN:{name:"Green",hue:120},
                 PURPLE:{name:"Purple",hue:280},
@@ -317,8 +322,10 @@ Made from 98% legacy spaghetti.
             let gravity = Gravities.SLIGHT;
             let manualNewYear = false;
             let trails = true;
-        </script>
-        <script> // main
+
+
+
+
             async function main() {
                 let tick = 0;
                 let nextFireworkTick = 0;
@@ -460,8 +467,11 @@ Made from 98% legacy spaghetti.
                     await tickTimePadd;
                 }
             }
-        </script>
-        <script> // particles
+            
+
+
+
+
             class FireworkParticle {
                 constructor(x, y, radius, launchSpeed, launchAngle, gravity, opacityDecay, opacity, saturation, hue) {
                     this.x = x;
@@ -531,8 +541,10 @@ Made from 98% legacy spaghetti.
                     fireworkCtx.globalAlpha = 1;
                 }
             }
-        </script>
-        <script> // menu
+            
+
+
+
             const menuelement = document.getElementById("menu")
 
             function openDomMenu() {
@@ -656,8 +668,21 @@ Made from 98% legacy spaghetti.
                     };
                 }
             }
-        </script>
-        <script> // essen
+
+            for (let it of document.getElementsByClassName("menu-trigger-fullscreen-request")) {
+                it.onclick = ()=> {
+                    document.body.requestFullscreen();
+                }
+            }
+            for (let it of document.getElementsByClassName("menu-trigger-fullscreen-exit")) {
+                it.onclick = ()=> {
+                    document.exitFullscreen();
+                }
+            }
+            
+
+
+
             function updateFireworkCanvasDimensions() {
                 fireworkCanvas.width = Math.round(innerWidth * renderRes.factor);
                 fireworkCanvas.height = Math.round(innerHeight * renderRes.factor);
@@ -681,13 +706,13 @@ Made from 98% legacy spaghetti.
 
             document.addEventListener("mousemove", resetIdleMouseHide);
             document.addEventListener("mousedown", resetIdleMouseHide);
-        </script>
-        <script> // even more spaghetti that should be somewhere else
+
+
             function isGregorianLeapYear(y) {
                 return y % 4 === 0 && (!(y % 100 === 0) || y % 400 === 0);
             }
-        </script>
-        <script> // launch
+
+
             main();
         </script>
     </body>
