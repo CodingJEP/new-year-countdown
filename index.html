@@ -23,8 +23,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 -->
 <!--
-New-Year-Countdown - v4.1
-Made from at least 98% legacy spaghetti.
+New-Year-Countdown - v4.2
+Made from at least 98% legacy spaghetti, horrifying both to performance and sanity.
+Next year is gonna get a full rewrite, but a serous one. (Instead of adding even more duct tape)
 -->
 <html>
     <head>
@@ -274,7 +275,7 @@ Made from at least 98% legacy spaghetti.
                 </div>
             </div>
             <div id="menu-footer">
-                New-Year-Countdown + Firework | v4.1 | © 2025 CodingJEP
+                New-Year-Countdown + Firework | v4.2 | © 2025 CodingJEP
             </div>
         </div>
         <div id="kbdtext">Esc / RightClick / DoubleTap : menu</div>
@@ -414,12 +415,13 @@ Made from at least 98% legacy spaghetti.
                         }
                     } else {
                         const isSchaltjahr = isGregorianLeapYear(now.getFullYear());
-                        const next = new Date(now.getFullYear() + 1, 0);    
+                        const next = new Date(now.getFullYear() + 1, 0); // really horrifying legacy code
                         const diff = next.getTime() - now.getTime();
-                        const days = ~~(diff/1000/60/60/24%(isSchaltjahr ? 366 : 365));
-                        const hours = ~~(diff/1000/60/60%24);
-                        const minutes = ~~(diff/1000/60%60);
-                        const seconds = ~~(diff/1000%60);
+                        const diffSec = Math.ceil(diff/1000); // fancy uprounding to not leave "0s" display
+                        const days = ~~(diffSec/60/60/24%(isSchaltjahr ? 366 : 365)); // js has no integers :(
+                        const hours = ~~(diffSec/60/60%24);
+                        const minutes = ~~(diffSec/60%60);
+                        const seconds = ~~(diffSec%60);
 
                         const zeropaddstr = (num, minLen) => {
                             const isNeg = num < 0;
